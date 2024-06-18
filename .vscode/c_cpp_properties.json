@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/home/heaven/Desktop/doc/libtorch/**",
+                "/home/heaven/Desktop/doc/libtorch/include/torch/csrc/api/include",
+                "/home/heaven/Desktop/doc/CLAPACK/INCLUDE",
+                "/home/heaven/Desktop/my_env/root_env/include"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}
