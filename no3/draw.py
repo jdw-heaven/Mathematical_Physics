@@ -46,6 +46,6 @@ for i in range(1, num_subplots + 1):
 
 # 调整子图之间的间距
 plt.tight_layout()
-fig.suptitle(f'Question3,FDM,V = J_0(x_1^(0) rho) ,dots=2601,a=50.0')
+fig.suptitle(f'Question3,SMR,V = J_0(x_1^(0) rho) ,dots=2601,a=1000.0')
 # 显示图形
 plt.show()

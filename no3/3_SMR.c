@@ -15,6 +15,11 @@ double m_B(int E_m1, double E_x1, int E_m2, double E_x2, double r);
 double m_B_add(int E_m1, double E_x1, int E_m2, double E_x2, int k, double initial_point, double t);
 double m_B_romberg(int E_m1, double E_x1, int E_m2, double E_x2, double initial_point, double terminal_point, double error);
 
+double m_M(int E_m1, double E_x1, int E_m2, double E_x2, double r);
+double m_M_add(int E_m1, double E_x1, int E_m2, double E_x2, int k, double initial_point, double t);
+double m_M_romberg(int E_m1, double E_x1, int E_m2, double E_x2, double initial_point, double terminal_point, double error);
+
+
 double m_T(int E_m1, int E_m2, double th);
 double m_T_add(int E_m1, int E_m2, int k, double initial_point, double t);
 double m_T_romberg(int E_m1, int E_m2, double initial_point, double terminal_point, double error);
@@ -53,17 +58,16 @@ int main(void)
 
     for(int i=0; i<N; i++){
         for(int j=0; j<N; j++){
-            A[i*N+j] = m_B_romberg(E_m[i],E_x[i],E_m[j],E_x[j],0,1,error)*m_T_romberg(E_m[i],E_m[j],0,2*PI,error)/m_B_romberg(E_m[i],E_x[i],E_m[i],E_x[i],0,1,error)/m_T_romberg(E_m[i],E_m[i],0,2*PI,error);
-            if(i==j)A[i*N+j] += E_x[i]*E_x[i];
+            A[i*N+j] = m_M_romberg(E_m[i],E_x[i],E_m[j],E_x[j],0,1,error)*m_T_romberg(E_m[i],E_m[j],0,2*PI,error)/m_B_romberg(E_m[i],E_x[i],E_m[i],E_x[i],0,1,error)/m_T_romberg(E_m[i],E_m[i],0,2*PI,error);
         }
     }
-
+/*
     for(int i=0; i<N; i++){
         for(int j=0; j<N; j++){
             printf("%lf ", A[i*N+j]);
         }printf("\n");
     }
-
+*/
     double *lambda;
     lambda = (double *)calloc(N,sizeof(double));
     double *lambda_i;
@@ -112,8 +116,7 @@ int main(void)
 }
 
 double m_B(int E_m1, double E_x1, int E_m2, double E_x2, double r){
-    //printf("%lf\n",gsl_sf_bessel_Jn(E_m1,E_x1*r)*(a*gsl_sf_bessel_J0(2.404826*r))*gsl_sf_bessel_Jn(E_m2,E_x2*r)*r);
-    return gsl_sf_bessel_Jn(E_m1,E_x1*r)*(a*gsl_sf_bessel_J0(2.404826*r))*gsl_sf_bessel_Jn(E_m2,E_x2*r)*r;
+    return gsl_sf_bessel_Jn(E_m1,E_x1*r)*gsl_sf_bessel_Jn(E_m2,E_x2*r)*r;
 }
 double m_B_add(int E_m1, double E_x1, int E_m2, double E_x2, int k, double initial_point, double t){
     double a = 0;
@@ -133,6 +136,51 @@ double m_B_romberg(int E_m1, double E_x1, int E_m2, double E_x2, double initial_
     int i = 1, j = 1;
     while(i){
         Px[i*M+0] = (Px[(i-1)*M+0]+m_B_add(E_m1,E_x1,E_m2,E_x2,i+1,initial_point,t))/2;
+        while(j){
+            Px[i*M+j] = Px[i*M+j-1]+(Px[i*M+j-1]-Px[(i-1)*M+j-1])/(pow(4,j)-1);
+            if(j == i){
+                j = 1;
+                break;
+            }else{
+                j++;
+            }
+        }
+        double e = fabs(Px[i*M+i]-Px[(i-1)*M+i-1]);
+        if(e<error&&i>10){
+            answer = Px[i*M+i];
+            break;
+        }else if(i == M-1){
+            printf("Please enlarge Px!!!\n");
+        }else{
+            i++;
+        }
+    }
+
+    free(Px);
+    return answer;
+}
+
+double m_M(int E_m1, double E_x1, int E_m2, double E_x2, double r){
+    return gsl_sf_bessel_Jn(E_m1,E_x1*r)*(E_x2*E_x2+a*gsl_sf_bessel_J0(2.404826*r))*gsl_sf_bessel_Jn(E_m2,E_x2*r)*r;
+}
+double m_M_add(int E_m1, double E_x1, int E_m2, double E_x2, int k, double initial_point, double t){
+    double a = 0;
+    for(int i = 1; i <= (k>2? pow(2,k-2):1); i++){
+        a += m_M(E_m1,E_x1,E_m2,E_x2,initial_point+(2*i-1)*t/pow(2,k-1));
+    }
+    return a*t/(k>2? pow(2,k-2):1);
+}
+double m_M_romberg(int E_m1, double E_x1, int E_m2, double E_x2, double initial_point, double terminal_point, double error){
+    double answer = 0;
+    double t = terminal_point-initial_point;
+    int M = 40;     //the initial M, if it's not enough, we'll give you an alert and you need to enlarge M
+    double *Px;
+    Px = (double *)malloc(M*M*sizeof(double));
+
+    Px[0] = ( m_M(E_m1,E_x1,E_m2,E_x2,initial_point)+m_M(E_m1,E_x1,E_m2,E_x2,terminal_point) )*t/2.0;
+    int i = 1, j = 1;
+    while(i){
+        Px[i*M+0] = (Px[(i-1)*M+0]+m_M_add(E_m1,E_x1,E_m2,E_x2,i+1,initial_point,t))/2;
         while(j){
             Px[i*M+j] = Px[i*M+j-1]+(Px[i*M+j-1]-Px[(i-1)*M+j-1])/(pow(4,j)-1);
             if(j == i){

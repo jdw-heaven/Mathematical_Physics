@@ -9,7 +9,7 @@ const double error = 1e-10;
 const int N = 51;   //为了避免奇点，取奇数
 const double length = 1;
 const double PI = 3.14159265358979323;
-const double a = 50.0;
+const double a = 1000.0;
 
 void m_search(double *lambda, int *num, int N);
 
@@ -93,7 +93,7 @@ int main(void)
     m_search(lambda,num,nzn);
 
     for(int i=0; i<16; i++){
-        fprintf(eigenvalue, "%lf\n", lambda[num[i]]/dx/dx);
+        fprintf(eigenvalue, "%lf\n", sqrt(lambda[num[i]]/dx/dx));
         for(int j=0; j<nzn; j++){
             fprintf(u[i], "%lf\n", App[num[i]*nzn+j]);
         }

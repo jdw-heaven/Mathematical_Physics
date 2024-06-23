@@ -1,6 +1,7 @@
 # 兰州大学数学物理方法2小课题
 [Github web address](https://github.com/jdw-heaven/Mathematical_Physics)
 
+
 ## 通用理论
 
 ### 1. (非)均匀齐次Helmholtz方程的有限差分法(Finite Difference Method)(1st B.C.)
